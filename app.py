@@ -26,7 +26,7 @@ st.set_page_config(
     page_title="Delhi Groundwater Monitoring & Forecasting System",
     page_icon="💧",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 st.markdown("""
@@ -35,9 +35,9 @@ st.markdown("""
 :root { --ink:#172a33; --muted:#60747d; --teal:#087f8c; --mint:#e5f4f0; --line:#dce8e8; }
 html, body, [class*="css"] { font-family:'DM Sans',sans-serif; color:var(--ink); }
 .block-container { padding-top:1.4rem; padding-bottom:2rem; max-width:1500px; }
-.hero { background:linear-gradient(115deg,#0d3440,#087f8c); border-radius:18px; padding:1.7rem 2rem; color:white; margin-bottom:1rem; }
-.hero h1 {font-family:'Manrope',sans-serif; margin:0; font-size:2.15rem; color:white;}
-.hero p {margin:.45rem 0 0; color:#d8eeee; font-size:1rem;}
+.hero { background:linear-gradient(115deg,#0d3440,#087f8c); border-radius:18px; padding:1.7rem 2rem; color:white; margin-bottom:1rem; overflow-wrap:anywhere; }
+.hero h1 {font-family:'Manrope',sans-serif; margin:0; font-size:clamp(1.75rem,4vw,2.15rem); line-height:1.14; color:white;}
+.hero p {margin:.55rem 0 0; color:#d8eeee; font-size:1rem; line-height:1.55;}
 .metric-card {background:#fff; border:1px solid var(--line); border-radius:14px; padding:1rem 1.1rem; min-height:112px; box-shadow:0 3px 12px #153e4a0b;}
 .metric-label {font-size:.82rem; color:var(--muted); font-weight:600;}
 .metric-value {font-family:'Manrope',sans-serif; font-size:1.65rem; font-weight:800; margin-top:.2rem; color:#173742;}
@@ -64,8 +64,35 @@ div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
 div[data-testid="stMetric"] [data-testid="stMetricValue"] {
   font-weight:800 !important;
 }
-.stTabs [data-baseweb="tab-list"] {gap:8px;}
-.stTabs [data-baseweb="tab"] {height:46px;border-radius:10px 10px 0 0;padding:0 18px;}
+.stTabs [data-baseweb="tab-list"] {gap:8px; max-width:100%; overflow-x:auto; flex-wrap:nowrap; scrollbar-width:thin; scrollbar-color:#79c4bb transparent;}
+.stTabs [data-baseweb="tab"] {height:46px; flex:0 0 auto; border-radius:10px 10px 0 0;padding:0 18px; white-space:nowrap;}
+.stTabs [data-baseweb="tab"] button p {white-space:nowrap;}
+@media (max-width: 760px) {
+  html, body {max-width:100%; overflow-x:hidden;}
+  .block-container {width:100%; min-width:0; padding:1rem .8rem 1.5rem !important;}
+  .hero {border-radius:15px; padding:1.25rem 1.1rem; margin-bottom:.75rem;}
+  .hero h1 {font-size:clamp(1.6rem,6vw,2rem); line-height:1.12;}
+  .hero p {font-size:.94rem; line-height:1.5;}
+  .stTabs [data-baseweb="tab-list"] {gap:3px; padding-bottom:2px; -webkit-overflow-scrolling:touch;}
+  .stTabs [data-baseweb="tab"] {height:44px; padding:0 .7rem;}
+  .stTabs [data-baseweb="tab"] button p {font-size:.82rem;}
+  .metric-card {min-height:92px; padding:.8rem .9rem;}
+  .metric-value {font-size:clamp(1.15rem,5vw,1.5rem); overflow-wrap:anywhere;}
+  .metric-note {line-height:1.35;}
+  div[data-testid="stMetric"] {padding:10px !important; min-width:0;}
+  div[data-testid="stMetric"] [data-testid="stMetricLabel"] {font-size:.8rem !important; line-height:1.3;}
+  div[data-testid="stMetric"] [data-testid="stMetricValue"] {font-size:clamp(1.1rem,5vw,1.45rem) !important; line-height:1.2;}
+  div[data-testid="stDataFrame"], div[data-testid="stTable"], div[data-testid="stPlotlyChart"] {max-width:100%; min-width:0;}
+  div[data-testid="stDataFrame"] {overflow-x:auto;}
+  .stMarkdown, .stAlert {overflow-wrap:anywhere;}
+}
+@media (max-width: 420px) {
+  .block-container {padding-left:.65rem !important; padding-right:.65rem !important;}
+  .hero {padding:1.1rem .9rem;}
+  .hero h1 {font-size:1.58rem;}
+  .stTabs [data-baseweb="tab"] {padding:0 .55rem;}
+  .stTabs [data-baseweb="tab"] button p {font-size:.78rem;}
+}
 </style>
 """, unsafe_allow_html=True)
 
