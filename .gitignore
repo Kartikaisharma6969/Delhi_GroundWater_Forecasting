@@ -4,6 +4,9 @@ __pycache__/
 .venv/
 .cache/
 Used dataasets/
+!Used dataasets/
+Used dataasets/*
+!Used dataasets/thapar_area_25km_2021_2025.csv
 *.py[cod]
 *.joblib
 

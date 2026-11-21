@@ -22,7 +22,7 @@ A local Streamlit dashboard for monitoring Delhi groundwater telemetry, explorin
 
 5. The default CSV is `Used dataasets/gwl_tel_6_hourly_delhi_sw_gw_dl_2021_2025.csv` in this project folder. If it is elsewhere, enter its full path in the sidebar. You can also set `DELHI_GW_CSV` before launching.
 
-The app runs locally and opens in a browser with six tabs: Overview, Station Explorer, Forecast Lab, Model Evaluation, Data Quality, and Insights. The raw CSV is read only. Streamlit caches a parsed copy in memory while the app process is running; changing the file size or modified time refreshes the cache. Bind to localhost for the local demo; the project is not publicly deployed.
+The app runs locally and opens in a browser with seven tabs: Overview, Station Explorer, Forecast Lab, Model Evaluation, Data Quality, Insights, and Thapar Area (Bonus). The raw CSVs are read only. Streamlit caches parsed copies in memory while the app process is running; changing a file's size or modified time refreshes its cache. Bind to localhost for the local demo.
 
 ## Current supplied file
 
@@ -67,4 +67,8 @@ Forecasts are an educational prototype. Telemetry values, particularly the large
 - `PROJECT_STATUS.md`: current progress and known limitations.
 - `PROJECT_GUIDE.md`: plain-language project and viva explanations.
 
-The separate Thapar-area dataset has not yet been added. The bonus section should be built only after that CSV is inspected and its measurement conventions and coverage are understood.
+## Thapar-area bonus data
+
+`Used dataasets/thapar_area_25km_2021_2025.csv` is a reduced subset of the supplied Punjab telemetry file. It includes all 37 stations within a 25 km straight-line radius of Thapar Institute's published Patiala campus point (30.356883° N, 76.358625° E), plus a calculated distance column. The subset contains 172,752 readings from 1 January 2021 through 22 September 2025 and is about 26 MB. The 776 MB statewide source file is not bundled in the app repository.
+
+The bonus tab reports the subset's station coverage, maps nearby stations, explores station histories, and provides seven-day forecast candidates with chronological holdout results when a station has enough usable data. The campus point is documented in [Thapar's environmental compliance disclosure](https://www.thapar.edu/upload/files/Thapar%20SM%2030.09.2024.pdf). The app retains supplied readings in the subset. For daily analysis it screens values equal to 999 and values below −100 m as candidate anomalies; the source provider's measurement conventions have not been confirmed, so these screens are provisional.

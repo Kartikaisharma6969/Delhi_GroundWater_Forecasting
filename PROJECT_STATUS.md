@@ -27,6 +27,8 @@ MVP, network evaluation, project documentation, report, presentation, and viva p
 - Added an academic report with actual dataset statistics, model results, tables, and three generated data figures.
 - Added a 14-slide presentation and visually reviewed its rendered slides.
 - Added a viva guide with 27 likely questions and answers.
+- Added a Thapar-area bonus dashboard tab with a 25 km station map, station-level monitoring, data-quality indicators, seven-day forecast candidates, and chronological holdout evaluation.
+- Filtered the Punjab source into a 37-station, 172,752-row app-ready subset spanning 1 January 2021 through 22 September 2025; the original statewide CSV remains outside the repository.
 - Fixed the missing NumPy import in station summaries and guarded the status table against a missing extreme-reading column.
 - Confirmed the Streamlit app responds at `http://127.0.0.1:8502/` with HTTP 200.
 
@@ -42,7 +44,7 @@ MVP, network evaluation, project documentation, report, presentation, and viva p
 ## Pending
 
 - Confirm with the dataset source what zero and 999 represent, if possible.
-- Add the Thapar-area bonus section after its separate CSV is available and validated.
+- Confirm Punjab telemetry conventions for 999 and readings below −100 m before interpreting them as placeholders or invalid values.
 - Publicly deploy only after hosting, resource, and data access requirements are decided.
 
 ## Known limitations

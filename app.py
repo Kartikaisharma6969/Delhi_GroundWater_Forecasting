@@ -20,6 +20,13 @@ DEFAULT_CSV = os.environ.get(
     "DELHI_GW_CSV",
     str(PROJECT_ROOT / "Used dataasets" / "gwl_tel_6_hourly_delhi_sw_gw_dl_2021_2025.csv"),
 )
+DEFAULT_THAPAR_CSV = os.environ.get(
+    "THAPAR_GW_CSV",
+    str(PROJECT_ROOT / "Used dataasets" / "thapar_area_25km_2021_2025.csv"),
+)
+THAPAR_LAT = 30 + 21 / 60 + 24.78 / 3600
+THAPAR_LON = 76 + 21 / 60 + 31.05 / 3600
+THAPAR_RADIUS_KM = 25
 STATION_SUMMARY_CACHE_VERSION = 2
 
 st.set_page_config(
@@ -147,6 +154,14 @@ def cached_network_evaluation(path: str, size: int, modified_ns: int) -> pd.Data
         return pd.DataFrame()
 
 
+@st.cache_data(show_spinner=False)
+def cached_thapar_distances(path: str, size: int, modified_ns: int) -> pd.DataFrame:
+    del size, modified_ns
+    frame = pd.read_csv(path, usecols=[STATION, "Distance from Thapar Campus (km)"])
+    frame[STATION] = frame[STATION].astype("string").str.strip()
+    return frame.groupby(STATION, as_index=False)["Distance from Thapar Campus (km)"].median()
+
+
 def show_station_chart(frame: pd.DataFrame, station: str) -> None:
     subset = frame.loc[frame[STATION].eq(station)].copy()
     subset["Reading status"] = "Supplied reading"
@@ -201,7 +216,7 @@ preferred_demo_station = "New Delhi Mungeshpur Mungeshpur"
 if preferred_demo_station not in good_for_forecast:
     preferred_demo_station = good_for_forecast[0] if good_for_forecast else all_station_names[0]
 
-tabs = st.tabs(["Overview", "Station Explorer", "Forecast Lab", "Model Evaluation", "Data Quality", "Insights"])
+tabs = st.tabs(["Overview", "Station Explorer", "Forecast Lab", "Model Evaluation", "Data Quality", "Insights", "Thapar Area (Bonus)"])
 
 with tabs[0]:
     st.markdown('<div class="section-title">Delhi monitoring network</div>', unsafe_allow_html=True)
@@ -439,6 +454,138 @@ with tabs[5]:
         st.markdown("### Chronological holdout results across eligible stations")
         st.dataframe(pd.DataFrame(model_rows), hide_index=True, width="stretch")
         st.caption("The medians summarize station-specific errors across stations with enough holdout examples. Each station keeps its own time-ordered train/test split.")
+
+with tabs[6]:
+    st.markdown("### Thapar-area groundwater monitoring and forecasting")
+    st.caption(
+        "Bonus study area: all monitoring stations within 25 km straight-line distance of Thapar Institute's published campus location in Patiala. "
+        "These are surrounding-area stations, not measurements from Thapar campus wells."
+    )
+    st.caption(
+        f"Campus reference point: {THAPAR_LAT:.6f}° N, {THAPAR_LON:.6f}° E. "
+        "Location is from the [Thapar environmental compliance disclosure](https://www.thapar.edu/upload/files/Thapar%20SM%2030.09.2024.pdf)."
+    )
+    thapar_path = Path(DEFAULT_THAPAR_CSV).expanduser()
+    if not thapar_path.is_file():
+        st.warning("The Thapar-area dataset is not available. Add thapar_area_25km_2021_2025.csv to the project's Used dataasets folder.")
+    else:
+        try:
+            with st.spinner("Loading nearby Punjab monitoring stations…"):
+                thapar_source = thapar_path.resolve()
+                thapar_stat = thapar_source.stat()
+                thapar_cache_key = (str(thapar_source), thapar_stat.st_size, thapar_stat.st_mtime_ns)
+                thapar_data = load_observations(thapar_source)
+                thapar_stations = cached_station_summaries(*thapar_cache_key, STATION_SUMMARY_CACHE_VERSION)
+                thapar_distances = cached_thapar_distances(*thapar_cache_key)
+                thapar_stations = thapar_stations.merge(thapar_distances, on=STATION, how="left").sort_values("Distance from Thapar Campus (km)")
+            thapar_quality = quality_summary(thapar_data, thapar_stations)
+            thapar_date_min, thapar_date_max = thapar_data[TIME].min(), thapar_data[TIME].max()
+            thapar_date_span = (
+                f"{thapar_date_min:%d %b %Y} – {thapar_date_max:%d %b %Y}"
+                if pd.notna(thapar_date_min) and pd.notna(thapar_date_max) else "Unavailable"
+            )
+            thapar_candidates = thapar_stations.loc[
+                thapar_stations["Usable nonzero readings"].ge(100), STATION
+            ].tolist()
+
+            overview = st.columns(4)
+            with overview[0]: st.metric("Stations within 25 km", len(thapar_stations))
+            with overview[1]: st.metric("Telemetry records", f"{len(thapar_data):,}")
+            with overview[2]: st.metric("Coverage", thapar_date_span)
+            with overview[3]: st.metric("Forecast candidates", len(thapar_candidates), "At least 100 screened nonzero readings")
+
+            map_stations = thapar_stations.loc[
+                thapar_stations[LAT].between(6, 38) & thapar_stations[LON].between(68, 98)
+            ].copy()
+            if not map_stations.empty:
+                map_fig = px.scatter_map(
+                    map_stations, lat=LAT, lon=LON, color="Usable nonzero readings",
+                    size="Observations", hover_name=STATION,
+                    hover_data={
+                        "District": True, "Observations": True,
+                        "Usable nonzero readings": True,
+                        "Distance from Thapar Campus (km)": ":.1f",
+                        LAT: False, LON: False,
+                    },
+                    color_continuous_scale="Teal", zoom=9,
+                    center={"lat": THAPAR_LAT, "lon": THAPAR_LON}, height=440,
+                    title="Punjab monitoring stations around Thapar",
+                )
+                map_fig.update_layout(map_style="carto-positron", margin=dict(l=0, r=0, t=45, b=0))
+                st.plotly_chart(map_fig, width="stretch")
+
+            st.markdown("### Nearby station analysis")
+            st.dataframe(
+                thapar_stations[[STATION, "District", "Distance from Thapar Campus (km)", "Observations", "Usable nonzero readings", "First observation", "Last observation"]].rename(columns={
+                    STATION: "Station", "Distance from Thapar Campus (km)": "Distance from campus (km)",
+                    "Usable nonzero readings": "Usable nonzero readings (screened)",
+                }),
+                hide_index=True, width="stretch", height=320,
+            )
+
+            station_options = thapar_stations[STATION].tolist()
+            eligible_nearby = thapar_stations.loc[thapar_stations[STATION].isin(thapar_candidates), STATION].tolist()
+            default_station = eligible_nearby[0] if eligible_nearby else station_options[0]
+            station = st.selectbox(
+                "Station for local trend and forecast", station_options,
+                index=station_options.index(default_station), key="thapar_area_station_v1",
+            )
+            row = thapar_stations.loc[thapar_stations[STATION].eq(station)].iloc[0]
+            station_metrics = st.columns(4)
+            with station_metrics[0]: st.metric("District", row["District"])
+            with station_metrics[1]: st.metric("Distance from campus", f"{row['Distance from Thapar Campus (km)']:.1f} km")
+            with station_metrics[2]: st.metric("Supplied observations", f"{int(row['Observations']):,}")
+            with station_metrics[3]: st.metric("Usable nonzero readings", f"{int(row['Usable nonzero readings']):,}")
+
+            show_station_chart(thapar_data, station)
+            daily = cached_daily_series(*thapar_cache_key, station)
+            if not daily.empty:
+                monthly = daily.dropna().resample("MS").median().rename_axis("Month").reset_index()
+                trend = px.line(
+                    monthly, x="Month", y="Groundwater level (m)", markers=True,
+                    title=f"Monthly median groundwater level · {station}",
+                )
+                trend.update_traces(line_color="#087f8c")
+                trend.update_layout(template="plotly_white", height=340, margin=dict(l=5, r=5, t=50, b=5))
+                st.plotly_chart(trend, width="stretch")
+                st.caption("Daily medians retain zero readings. The existing analytical screen omits 999 and values below −100 m; the source rows remain in the area dataset.")
+            else:
+                st.warning("No dated readings remain for the selected station after the current analytical screen.")
+
+            st.markdown("### Seven-day forecast and holdout evaluation")
+            if int(row["Usable nonzero readings"]) < 100 or row["All readings zero"]:
+                st.info("This station remains included in monitoring, but it does not meet the current forecast-candidate threshold.")
+            else:
+                forecast, forecast_message = cached_forecast(*thapar_cache_key, station)
+                if forecast_message:
+                    st.info(forecast_message)
+                else:
+                    st.dataframe(forecast, hide_index=True, width="stretch")
+                    metrics, predictions, evaluation_message = cached_evaluation(*thapar_cache_key, station)
+                    if evaluation_message:
+                        st.info(f"Holdout evaluation unavailable: {evaluation_message}")
+                    elif not metrics.empty:
+                        best = metrics.iloc[0]
+                        st.dataframe(metrics, hide_index=True, width="stretch")
+                        st.caption(
+                            f"Lowest holdout MAE for this station: {best['Model']} "
+                            f"({best['MAE (m)']:.3f} m across {int(best['Test observations'])} test targets). "
+                            "This station-specific result does not establish reliability for other wells or future periods."
+                        )
+
+            st.markdown("### Data quality review")
+            qc = st.columns(4)
+            with qc[0]: st.metric("Zero readings", f"{thapar_quality['zero readings']:,}")
+            with qc[1]: st.metric("999 candidate readings", f"{thapar_quality['999 readings']:,}")
+            with qc[2]: st.metric("Readings below −100 m", f"{thapar_quality['extreme below -100']:,}")
+            with qc[3]: st.metric("Duplicate station/times", f"{thapar_quality['duplicate station timestamps']:,}")
+            st.caption(
+                "Values equal to 999 and readings below −100 m are treated as candidate anomalies for daily analysis. "
+                "This screening rule is provisional because the source provider's measurement conventions have not been confirmed. "
+                "The extracted area file retains the supplied readings."
+            )
+        except Exception as exc:
+            st.error(f"Could not load the Thapar-area dataset: {exc}")
 
 st.sidebar.divider()
 st.sidebar.caption("Educational prototype · not an operational warning system.")
