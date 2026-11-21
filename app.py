@@ -439,8 +439,6 @@ with tabs[5]:
         st.markdown("### Chronological holdout results across eligible stations")
         st.dataframe(pd.DataFrame(model_rows), hide_index=True, width="stretch")
         st.caption("The medians summarize station-specific errors across stations with enough holdout examples. Each station keeps its own time-ordered train/test split.")
-    else:
-        st.info("Cross-station model results are not available for the active CSV. Run the network evaluation workflow to calculate them.")
 
 st.sidebar.divider()
 st.sidebar.caption("Educational prototype · not an operational warning system.")
