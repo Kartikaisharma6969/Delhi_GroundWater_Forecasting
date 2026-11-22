@@ -27,6 +27,7 @@ DEFAULT_THAPAR_CSV = os.environ.get(
 THAPAR_LAT = 30 + 21 / 60 + 24.78 / 3600
 THAPAR_LON = 76 + 21 / 60 + 31.05 / 3600
 THAPAR_RADIUS_KM = 25
+NWIC_DATASET_URL = "https://nwdp.nwic.gov.in/dataset/ground-water-level-telemetry-hourly-delhi-surface-water-and-ground-water-departments/resource/14c48913-600c-4e2c-9c77-8ef2e92e59e6"
 STATION_SUMMARY_CACHE_VERSION = 2
 
 st.set_page_config(
@@ -50,6 +51,11 @@ html, body, [class*="css"] { font-family:'DM Sans',sans-serif; color:var(--ink);
 .metric-value {font-family:'Manrope',sans-serif; font-size:1.65rem; font-weight:800; margin-top:.2rem; color:#173742;}
 .metric-note {font-size:.75rem; color:var(--muted); margin-top:.15rem;}
 .section-title {font-family:'Manrope',sans-serif; font-size:1.2rem; font-weight:800; margin:.5rem 0 .3rem;}
+.nwic-source-card {display:block; margin:.35rem 0 .65rem; padding:1rem; border-radius:16px; color:#fff !important; text-decoration:none !important; background:linear-gradient(135deg,#0d3440 0%,#087f8c 58%,#10a58b 100%); border:1px solid #72c5bc80; box-shadow:0 8px 22px #001d2545; transition:transform .18s ease, box-shadow .18s ease;}
+.nwic-source-card:hover {transform:translateY(-2px); box-shadow:0 12px 26px #001d255c; border-color:#a4eee1;}
+.nwic-source-kicker {display:block; margin-bottom:.45rem; color:#b9f1e7; font-size:.67rem; font-weight:800; letter-spacing:.12em;}
+.nwic-source-title {display:block; color:#fff; font-family:'Manrope',sans-serif; font-size:1.03rem; font-weight:800; line-height:1.25;}
+.nwic-source-detail {display:block; margin-top:.45rem; color:#e1f8f4; font-size:.78rem; line-height:1.4;}
 div[data-testid="stMetric"] {
   background:linear-gradient(135deg,#f2fbfa,#e2f3f0) !important;
   border:1px solid #79c4bb !important;
@@ -183,9 +189,16 @@ def show_station_chart(frame: pd.DataFrame, station: str) -> None:
 
 
 st.sidebar.markdown("## Project controls")
-csv_path = st.sidebar.text_input("Dataset CSV path", value=DEFAULT_CSV, key="dataset_csv_path_v2", help="Change this if you move the source CSV.")
-st.sidebar.markdown("[Open Delhi groundwater dataset on NWIC](https://nwdp.nwic.gov.in/dataset/ground-water-level-telemetry-hourly-delhi-surface-water-and-ground-water-departments/resource/14c48913-600c-4e2c-9c77-8ef2e92e59e6)")
-st.sidebar.caption("The app reads the local CSV at the path above. The NWIC link opens the source record; download a fresh CSV and update the path to refresh the data. The source file is not modified by the app.")
+csv_path = DEFAULT_CSV
+st.sidebar.markdown(
+    f'<a class="nwic-source-card" href="{NWIC_DATASET_URL}" target="_blank" rel="noopener noreferrer" aria-label="Open the Delhi groundwater telemetry dataset on the National Water Data Portal">'
+    '<span class="nwic-source-kicker">OFFICIAL DATA SOURCE</span>'
+    '<span class="nwic-source-title">Delhi Groundwater Telemetry</span>'
+    '<span class="nwic-source-detail">Browse the National Water Data Portal record&nbsp; ↗</span>'
+    '</a>',
+    unsafe_allow_html=True,
+)
+st.sidebar.caption("The dashboard currently analyzes its bundled CSV snapshot. The card opens the NWIC source record.")
 
 st.markdown(
     '<div class="hero"><h1>Delhi Groundwater Monitoring & Forecasting System</h1>'
