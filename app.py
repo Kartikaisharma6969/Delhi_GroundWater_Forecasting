@@ -44,6 +44,8 @@ st.markdown("""
 html, body, [class*="css"] { font-family:'DM Sans',sans-serif; color:var(--ink); }
 @keyframes heroReveal {from {opacity:0; transform:translateY(14px) scale(.992);} to {opacity:1; transform:translateY(0) scale(1);}}
 @keyframes sectionReveal {from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);}}
+@keyframes lensGlide {0% {left:0; top:2.5rem; opacity:0;} 14% {opacity:.86;} 82% {opacity:.72;} 100% {left:calc(100% - 4.35rem); top:calc(100% - 7rem); opacity:0;}}
+@keyframes lensHandleGlide {0% {left:0; top:6.05rem; opacity:0;} 14% {opacity:.86;} 82% {opacity:.72;} 100% {left:calc(100% - 4.35rem); top:calc(100% - 3.45rem); opacity:0;}}
 .block-container { padding-top:1.4rem; padding-bottom:2rem; max-width:1500px; }
 .hero { background:linear-gradient(115deg,#0d3440,#087f8c); border-radius:18px; padding:1.7rem 2rem; color:white; margin-bottom:1rem; overflow-wrap:anywhere; animation:heroReveal .68s cubic-bezier(.2,.72,.25,1) both; }
 .hero h1 {font-family:'Manrope',sans-serif; margin:0; font-size:clamp(1.75rem,4vw,2.15rem); line-height:1.14; color:white;}
@@ -85,7 +87,9 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
 .stTabs [data-baseweb="tab"][aria-selected="true"] {color:#087f8c !important;}
 .stTabs [data-baseweb="tab"]::after {content:""; position:absolute; left:16px; right:16px; bottom:0; height:3px; border-radius:3px 3px 0 0; background:linear-gradient(90deg,#087f8c,#39b89e); transform:scaleX(0); transform-origin:center; transition:transform .24s ease;}
 .stTabs [data-baseweb="tab"][aria-selected="true"]::after {transform:scaleX(1);}
-.stTabs [role="tabpanel"] {animation:sectionReveal .42s cubic-bezier(.2,.72,.25,1) both;}
+.stTabs [role="tabpanel"] {position:relative; animation:sectionReveal .42s cubic-bezier(.2,.72,.25,1) both;}
+.stTabs [role="tabpanel"]::before {content:""; position:absolute; z-index:9; left:0; top:2.5rem; width:4.35rem; height:4.35rem; border:1px solid #ffffffc9; border-radius:50%; background:radial-gradient(circle at 31% 27%,#ffffffa6 0%,#d9fffa72 25%,#36c4b638 67%,#087f8c1c 100%); box-shadow:0 0 0 5px #16a89520,0 0 26px #30cfbd70,inset 0 0 10px #ffffffa1; backdrop-filter:brightness(1.08) saturate(1.22); pointer-events:none; animation:lensGlide 1.12s cubic-bezier(.2,.72,.25,1) .05s both;}
+.stTabs [role="tabpanel"]::after {content:""; position:absolute; z-index:8; left:0; top:6.05rem; margin-left:2.95rem; width:.62rem; height:2.15rem; border:1px solid #d8fffa; border-radius:999px; background:linear-gradient(180deg,#e9fffb,#087f8c); box-shadow:0 3px 12px #087f8c55; transform:rotate(-43deg); transform-origin:top center; pointer-events:none; animation:lensHandleGlide 1.12s cubic-bezier(.2,.72,.25,1) .05s both;}
 .stTabs [data-baseweb="tab"] button p {white-space:nowrap;}
 @media (max-width: 760px) {
   html, body {max-width:100%; overflow-x:hidden;}
@@ -115,6 +119,7 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
 }
 @media (prefers-reduced-motion: reduce) {
   .hero, .stTabs [role="tabpanel"] {animation:none !important;}
+  .stTabs [role="tabpanel"]::before, .stTabs [role="tabpanel"]::after {display:none !important; animation:none !important;}
   .stTabs [data-baseweb="tab"], .stTabs [data-baseweb="tab"]::after, .nwic-source-card {transition:none !important;}
 }
 </style>
