@@ -184,7 +184,8 @@ def show_station_chart(frame: pd.DataFrame, station: str) -> None:
 
 st.sidebar.markdown("## Project controls")
 csv_path = st.sidebar.text_input("Dataset CSV path", value=DEFAULT_CSV, key="dataset_csv_path_v2", help="Change this if you move the source CSV.")
-st.sidebar.caption("The source CSV is read-only. The app reads only the fields needed for analysis.")
+st.sidebar.markdown("[Open Delhi groundwater dataset on NWIC](https://nwdp.nwic.gov.in/dataset/ground-water-level-telemetry-hourly-delhi-surface-water-and-ground-water-departments/resource/14c48913-600c-4e2c-9c77-8ef2e92e59e6)")
+st.sidebar.caption("The app reads the local CSV at the path above. The NWIC link opens the source record; download a fresh CSV and update the path to refresh the data. The source file is not modified by the app.")
 
 st.markdown(
     '<div class="hero"><h1>Delhi Groundwater Monitoring & Forecasting System</h1>'
